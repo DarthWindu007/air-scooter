@@ -8,78 +8,57 @@ class MoviesController < ApplicationController
 
   def index
 
-    remember = false
-    @all_ratings = Movie.get_all_ratings
+    savedsession = false
+    @all_ratings = Movie.get_ratings
     @dic =[]
-
-    
-    if params[:ratings]
-         @rat = params[:ratings]
-         @rat.keys.each do |x|
-                @dic = @dic << x 
-          end
-    elsif session[:ratings]
-            @rat = session[:ratings]
-            @rat.keys.each do |x|    
-            @dic = @dic << x
+    if(params[:ratings])
+         @ratings = params[:ratings]
+         @ratings.keys.each{|x| @dic=@dic.push(x)}
+    elsif(session[:ratings])
+         @ratings = session[:ratings]
+         @ratings.keys.each{|x| 
+			@dic=@dic.push(x)
+			savedsession = true
+			} 
+    else
+		@all_ratings.each{|x|
+		@dic = [@dic.push(x)].flatten 
+		(@ratings =@ratings||{})[x]=1}
+    end
+	p_clicked = params[:click]
+    if(p_clicked)
+        @clicked = p_clicked
+    elsif(session[:click])
+        @clicked = session[:click]
+        savedsession = true
+    end
+    if(savedsession)
+		redirect_to movies_path(:click => @clicked, :ratings =>@ratings)
+    end
+    if(p_clicked)
+        @list_of_movies =[]
+        if(p_clicked=='title')
+        Movie.all(:order=>'title').each{|x|
+			if @dic.include?(x.rating) 
+				@list_of_movies = (@list_of_movies.push(x)).flatten
             end
-            remember = true 
-
-    else
-      @all_ratings.each do |r|
-      @dic = [@dic << r].flatten 
-      (@rat ||= { })[r] = 1
-      end
-    end
-
-
-    if params[:click]
-        @click = params[:click]
-    elsif session[:click]
-            @click = session[:click]
-            remember = true
-    end
-
-    
-
-
-     if remember
-            redirect_to movies_path(:click => @click, :ratings =>@rat)
-        end
-
-
-
-    if params[:click]
-        @movies =[]
-        if params[:click] == "title"
-        Movie.all(:order => "title").each do |m|
-        if @dic.include?(m.rating) 
-                     @movies = (@movies << m).flatten
-                end
-        end
-
+			}
         else
-            Movie.all(:order => "release_date").each do |m|
-        if @dic.include?(m.rating) 
-                     @movies = (@movies << m).flatten
-                end
-        end
-    end
-    
-
+            Movie.all(:order=>'release_date').each{|x|
+			if @dic.include?(x.rating) 
+				@list_of_movies = (@list_of_movies.push(x)).flatten
+			end			}
+		end
     else
-        @movies =[]
-        Movie.all.each do |m|
-        if @dic.include?(m.rating) 
-                     @movies = (@movies << m).flatten
-             end
+        @list_of_movies =[]
+        Movie.all.each{|x|
+        if @dic.include?(x.rating) 
+			@list_of_movies = (@list_of_movies.push(x)).flatten
         end
-
+        }
     end
-
-
-    session[:click]  = @click
-    session[:ratings]=@rat
+    session[:click]=@clicked
+    session[:ratings]=@ratings
 	
   end
 
