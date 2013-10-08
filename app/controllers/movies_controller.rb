@@ -7,7 +7,80 @@ class MoviesController < ApplicationController
   end
 
   def index
-    @movies = Movie.all
+
+    remember = false
+    @all_ratings = Movie.get_all_ratings
+    @dic =[]
+
+    
+    if params[:ratings]
+         @rat = params[:ratings]
+         @rat.keys.each do |x|
+                @dic = @dic << x 
+          end
+    elsif session[:ratings]
+            @rat = session[:ratings]
+            @rat.keys.each do |x|    
+            @dic = @dic << x
+            end
+            remember = true 
+
+    else
+      @all_ratings.each do |r|
+      @dic = [@dic << r].flatten 
+      (@rat ||= { })[r] = 1
+      end
+    end
+
+
+    if params[:click]
+        @click = params[:click]
+    elsif session[:click]
+            @click = session[:click]
+            remember = true
+    end
+
+    
+
+
+     if remember
+            redirect_to movies_path(:click => @click, :ratings =>@rat)
+        end
+
+
+
+    if params[:click]
+        @movies =[]
+        if params[:click] == "title"
+        Movie.all(:order => "title").each do |m|
+        if @dic.include?(m.rating) 
+                     @movies = (@movies << m).flatten
+                end
+        end
+
+        else
+            Movie.all(:order => "release_date").each do |m|
+        if @dic.include?(m.rating) 
+                     @movies = (@movies << m).flatten
+                end
+        end
+    end
+    
+
+    else
+        @movies =[]
+        Movie.all.each do |m|
+        if @dic.include?(m.rating) 
+                     @movies = (@movies << m).flatten
+             end
+        end
+
+    end
+
+
+    session[:click]  = @click
+    session[:ratings]=@rat
+	
   end
 
   def new
