@@ -59,7 +59,6 @@ class MoviesController < ApplicationController
     end
     session[:click]=@clicked
     session[:ratings]=@ratings
-	
   end
 
   def new

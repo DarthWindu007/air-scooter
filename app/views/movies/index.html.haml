@@ -9,9 +9,9 @@
 %table#movies
   %thead
     %tr
-      %th{:class => if params[:click]=="title" then 'hilite' end}= link_to "Movie Title", movies_path(:click => "title"), :id => "title_header" 
+      %th{:class =>yellow?(params[:click],'title')}= link_to "Movie Title", movies_path(:click => "title"), :id => "title_header" 
       %th Rating
-      %th{:class => if params[:click]=="release_date" then 'hilite' end}= link_to "Release_date", movies_path(:click => "release_date"), :id => "release_date_header"
+      %th{:class =>yellow?(params[:click],'release_date')}= link_to "Release_date", movies_path(:click => "release_date"), :id => "release_date_header"
       %th More Info
   %tbody
     - @list_of_movies.each do |movie|
